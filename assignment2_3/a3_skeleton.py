@@ -467,9 +467,8 @@ class Trainer32():
                     
                     out = self.model(x_sequence)  # one forward pass
                     
-                    for pred,actual,seq_len in zip(out, y_sequence, lengths):
-
-                        loss += self.criterion(pred[:seq_len], actual[:seq_len])  # calculate loss
+                    mask = (torch.arange(60)[None, :] < lengths.view(-1)[:, None]).unsqueeze(-1)
+                    loss += torch.sum((out*mask - y_sequence).pow(2), dim=[1,2]) / lengths.view(-1)
                  
                     loss_value = loss.item()
                     valid_losses.append(loss_value)
