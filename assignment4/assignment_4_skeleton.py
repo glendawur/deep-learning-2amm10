@@ -160,8 +160,6 @@ class Decoder(nn.Module):
         self.Conv3 = nn.ConvTranspose2d(64, 32, 3, stride=2, output_padding =1) # 30x30x32
         self.Conv4 = nn.ConvTranspose2d(32, 1, 3) # 32x32x1
 
-
-     
     def forward(self,latent_dim):
         x = F.relu(self.FC(latent_dim))
         # x = x.view(-1, 256*4*4)
@@ -171,9 +169,7 @@ class Decoder(nn.Module):
         x = F.relu(self.Conv3(x))
         # x = F.relu(self.Conv4(x))
         x = torch.sigmoid(self.Conv4(x))
-        
         return x
-
 
 class Classificator(nn.Module):
     def __init__(self, encoder, latent_dim=LATENT_DIM, n_classes=5):
@@ -195,8 +191,6 @@ class Classificator(nn.Module):
         
         return out, z
 
-    
-
 class VAE(nn.Module):
     def __init__(self, device, z_dim=LATENT_DIM):
         super(VAE, self).__init__()
@@ -214,8 +208,6 @@ class VAE(nn.Module):
         z = self.reparameterize(mu, log_var)
         output = self.dec(z)
         return output, mu, log_var
-        
-
 
 # # Data augmentation and pipeline
 
@@ -277,6 +269,7 @@ def train_classifier(encoder, dataloader, criterion, latent_dim=16, epochs: int 
 from tqdm import tqdm
 
 def train_model(model, dataloader, epochs: int = 50, device = torch.device('cpu')):
+    
     model.train()
     optimizer = torch.optim.Adam(model.parameters(), lr = 1e-3)
 
@@ -348,16 +341,17 @@ def anomaly_detection(model, train_dataloader, target_dataloader, device = torch
     label_target = np.concatenate(label_target, 0)
 
     fig, axs = plt.subplots(1, 2)
-    axs[0,0].hist(elbo_train, bins=100, color = '#99ccff')
-    axs[0,0].hist(elbo_target[np.where(label_target == False)], bins=100, color = '#bbeeff')
-    axs[0,0].hist(elbo_target[np.where(label_target == True)], bins=100, color = '#cb2c31')
-    axs[0,0].set_title('ELBO')
+    axs[0].hist(elbo_train, bins=100, color = '#99ccff')
+    axs[0].hist(elbo_target[np.where(label_target == False)], bins=100, color = '#bbeeff')
+    axs[0].hist(elbo_target[np.where(label_target == True)], bins=100, color = '#cb2c31')
+    axs[0].set_title('ELBO')
     
-    axs[0,1].hist(rec_train, bins=100, color = '#99ccff')
-    axs[0,1].hist(rec_target[np.where(label_target == False)], bins=100, color = '#bbeeff')
-    axs[0,1].hist(rec_target[np.where(label_target == True)], bins=100, color = '#cb2c31')
-    axs[0,1].set_title('Reconstruction Loss')
+    axs[1].hist(rec_train, bins=100, color = '#99ccff')
+    axs[1].hist(rec_target[np.where(label_target == False)], bins=100, color = '#bbeeff')
+    axs[1].hist(rec_target[np.where(label_target == True)], bins=100, color = '#cb2c31')
+    axs[1].set_title('Reconstruction Loss')
     fig.show()
+
 
     scores = -elbo_target
     scores = (scores - scores.min())/(scores.max()-scores.min())
@@ -367,7 +361,7 @@ def anomaly_detection(model, train_dataloader, target_dataloader, device = torch
     roc_auc = auc(fpr, tpr)
     pr_auc = auc(recall, precision)
 
-    print(f'{roc_auc=}')
+    print(f'{roc_auc}')
     plt.figure()
     plt.plot(fpr, tpr, lw=2, label=f'ROC curve (area = {roc_auc:.2f})')
     plt.plot([0, 1], [0, 1], lw=1, linestyle="--")
@@ -380,7 +374,7 @@ def anomaly_detection(model, train_dataloader, target_dataloader, device = torch
     plt.show()
 
 
-    print(f'{pr_auc=}')
+    print(f'{pr_auc}')
     plt.figure()
     plt.plot(recall, precision, lw=2, label=f'Precision-Recall curve (area = {pr_auc:.2f})')
     plt.xlim([0.0, 1.0])
